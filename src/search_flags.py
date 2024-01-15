@@ -25,6 +25,16 @@ while not pyboy.tick():
     # Imprimindo os valores das flags
     print(f"Posição X 0xDCB8: {x_pos}")
     print(f"Posição Y 0xDCB7: {y_pos}")
+    # Map Values:
+    # 3 - Route 29
+    # 4 - New Bark City
+    # 5 - Elm's Lab
+    # 6 - Player's House
+    # 7 - Player's Room
+    # 8 - Neighbor's House - New Bark City
+    # 9 - Elm's House
+    # 9 - Route 46
+    # 13 - Guard's House - Route 29 <--> Route 46
     print(f"Número do Mapa 0xDCB6: {map_n}")
     print(f"Map Bank 0xDCB5: {map_n}")
     print(f"Dinheiro Bit 1 0xD84E: {money1}")
