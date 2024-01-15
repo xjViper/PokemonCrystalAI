@@ -9,7 +9,7 @@ pyboy.set_emulation_speed(5)
 
 # Loop principal para emular o jogo
 while not pyboy.tick():
-    # Obtendo o valor da flag "0xDCB7"
+    # Obtendo os valores das flags
     x_pos = pyboy.get_memory_value(0xD362)
     y_pos = pyboy.get_memory_value(0xD361)
     map_n = pyboy.get_memory_value(0xD35E)
@@ -18,7 +18,7 @@ while not pyboy.tick():
         for a in [0xDCFE, 0xDD2E, 0xDD5E, 0xDD8E, 0xDDBE, 0xDDEE]
     ]
 
-    # Imprimindo o valor da flag
+    # Imprimindo os valores das flags
     print(f"Posição X 0xD362: {x_pos}")
     print(f"Posição Y 0xD361: {y_pos}")
     print(f"Número do Mapa 0xD35E: {y_pos}")
