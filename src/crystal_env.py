@@ -374,8 +374,8 @@ class CrystalEnv(Env):
             self.pyboy.tick()
 
     def get_game_state_reward(self, print_stats=False):
-        money = self.read_bcd(self.read_m(0xD84E))
-        seen_poke_count = self.read_bcd(self.read_m(0xDEB9))
+        money = self.read_money() - 3000
+        seen_poke_count = self.read_seen_poke()
         state_scores = {
             # "event": self.reward_scale * self.update_max_event_rew(),
             #'party_xp': self.reward_scale*0.1*sum(poke_xps),
@@ -431,6 +431,54 @@ class CrystalEnv(Env):
     def read_bit(self, addr, bit: int) -> bool:
         # add padding so zero will read '0b100000000' instead of '0b0'
         return bin(256 + self.read_m(addr))[-bit - 1] == "1"
+
+    def read_money(self):
+        return (
+            (100 * 100 * self.read_bcd(self.read_m(0xD84E)))
+            + (100 * self.read_bcd(self.read_m(0xD84F)))
+            + int(16.11 * self.read_bcd(self.read_m(0xD850)))
+        )
+
+    def read_seen_poke(self):
+        return sum(
+            [
+                self.bit_count(self.read_m(i))
+                for i in range(
+                    0xDEB9,
+                    0xDEBA,
+                    0xDEBB,
+                    0xDEBC,
+                    0xDEBD,
+                    0xDEBE,
+                    0xDEBF,
+                    0xDEC0,
+                    0xDEC1,
+                    0xDEC2,
+                    0xDEC3,
+                    0xDEC4,
+                    0xDEC5,
+                    0xDEC6,
+                    0xDEC7,
+                    0xDEC8,
+                    0xDEC9,
+                    0xDECA,
+                    0xDECB,
+                    0xDECC,
+                    0xDECD,
+                    0xDECE,
+                    0xDECF,
+                    0xDED0,
+                    0xDED1,
+                    0xDED2,
+                    0xDED3,
+                    0xDED4,
+                    0xDED5,
+                    0xDED6,
+                    0xDED7,
+                    0xDED8,
+                )
+            ]
+        )
 
     def read_hp(self, start):
         return 256 * self.read_m(start) + self.read_m(start + 1)
