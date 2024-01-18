@@ -69,15 +69,19 @@ def read_money():
 prev_values = {
     "x_pos": None,
     "y_pos": None,
+    "N_map_n": None,
+    "S_map_n": None,
+    "W_map_n": None,
+    "E_map_n": None,
     "map_n": None,
     "map_bank": None,
-    "money1": None,
-    "money2": None,
-    "levels": [None, None, None, None, None, None],
     "room": None,
+    "money": None,
     "j_badges": None,
     "k_badges": None,
+    "seen": None,
     "pt_num": None,
+    "levels": [None, None, None, None, None, None],
 }
 
 
@@ -90,7 +94,12 @@ while not pyboy.tick():
     map_bank = pyboy.get_memory_value(0xDCB5)
     warp_n = pyboy.get_memory_value(0xDCB4)
 
-    test = pyboy.get_memory_value(0x5D11)
+    N_map_n = pyboy.get_memory_value(0xD1AA)
+    S_map_n = pyboy.get_memory_value(0xD1B6)
+    W_map_n = pyboy.get_memory_value(0xD1C2)
+    E_map_n = pyboy.get_memory_value(0xD1CE)
+
+    # test = pyboy.get_memory_value(0x5D11)
 
     j_badges = pyboy.get_memory_value(0xD857)
     k_badges = pyboy.get_memory_value(0xD858)
@@ -118,27 +127,37 @@ while not pyboy.tick():
         for key, x in {
             "x_pos": x_pos,
             "y_pos": y_pos,
+            "N_map_n": N_map_n,
+            "S_map_n": S_map_n,
+            "W_map_n": W_map_n,
+            "E_map_n": E_map_n,
             "map_n": map_n,
             "map_bank": map_bank,
-            "money": money,
-            "levels": levels,
             "room": room,
+            "money": money,
             "j_badges": j_badges,
             "k_badges": k_badges,
+            "seen": seen,
             "pt_num": pt_num,
+            "levels": levels,
         }.items()
     ):
         # Atualizando os valores anteriores
         prev_values["x_pos"] = x_pos
         prev_values["y_pos"] = y_pos
+        prev_values["N_map_n"] = N_map_n
+        prev_values["S_map_n"] = S_map_n
+        prev_values["W_map_n"] = W_map_n
+        prev_values["E_map_n"] = E_map_n
         prev_values["map_n"] = map_n
         prev_values["map_bank"] = map_bank
-        prev_values["money"] = money
-        prev_values["levels"] = levels
         prev_values["room"] = room
+        prev_values["money"] = money
         prev_values["j_badges"] = j_badges
         prev_values["k_badges"] = k_badges
+        prev_values["seen"] = seen
         prev_values["pt_num"] = pt_num
+        prev_values["levels"] = levels
 
         # Imprimindo os valores das flags
         print(f"Posição X 0xDCB8: {x_pos}")
@@ -153,21 +172,29 @@ while not pyboy.tick():
         # 9 - Wrap 1 - Elm's House
         # 9 - Wrap 2 - Route 46
         # 13 - Guard's House - Route 29 <--> Route 46
+        print(f"Número do Mapa Conectado ao Norte 0xD1AA: {N_map_n}")
+        print(f"Número do Mapa Conectado ao Sul 0xD1B5: {S_map_n}")
+        print(f"Número do Mapa Conectado ao Oeste 0xD1C1: {W_map_n}")
+        print(f"Número do Mapa Conectado ao Leste 0xD1CD: {E_map_n}")
+
         print(f"Room Player is in 0xD148: {room}")
         print(f"Map Bank 0xDCB5: {map_n}")
         print(f"Número do Mapa 0xDCB6: {map_n}")
         print(f"Número do Wrap 0xDCB4: {warp_n}")
+
         print(f"Event Flags 0xDA72: {event_flags}")
         print(f"Johto Badges 0xD857: {j_badges}")
         print(f"Kanto Badges 0xD858: {k_badges}")
+
         # print(f"Dinheiro Bit 1 0xD84E: {money1}")
         # print(f"Dinheiro Bit 2 0xD84F: {money2}")
         # print(f"Dinheiro Bit 3 0xD850: {money3}")
         print(f"Dinheiro Def Read Money: {money}")
+
         print(f"Pokes Vistos Def Read Seen Poke: {seen}")
         print(f"Party Size: {pt_num}")
 
-        print(f"Teste Flag 0x5d11: {test}")
+        # print(f"Teste Flag 0x5d11: {test}")
 
         print(
             f"""Nível dos Pokes por Slot: 
