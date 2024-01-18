@@ -440,45 +440,41 @@ class CrystalEnv(Env):
         )
 
     def read_seen_poke(self):
-        return sum(
-            [
-                self.bit_count(self.read_m(i))
-                for i in range(
-                    0xDEB9,
-                    0xDEBA,
-                    0xDEBB,
-                    0xDEBC,
-                    0xDEBD,
-                    0xDEBE,
-                    0xDEBF,
-                    0xDEC0,
-                    0xDEC1,
-                    0xDEC2,
-                    0xDEC3,
-                    0xDEC4,
-                    0xDEC5,
-                    0xDEC6,
-                    0xDEC7,
-                    0xDEC8,
-                    0xDEC9,
-                    0xDECA,
-                    0xDECB,
-                    0xDECC,
-                    0xDECD,
-                    0xDECE,
-                    0xDECF,
-                    0xDED0,
-                    0xDED1,
-                    0xDED2,
-                    0xDED3,
-                    0xDED4,
-                    0xDED5,
-                    0xDED6,
-                    0xDED7,
-                    0xDED8,
-                )
-            ]
-        )
+        addr = [
+            0xDEB9,
+            0xDEBA,
+            0xDEBB,
+            0xDEBC,
+            0xDEBD,
+            0xDEBE,
+            0xDEBF,
+            0xDEC0,
+            0xDEC1,
+            0xDEC2,
+            0xDEC3,
+            0xDEC4,
+            0xDEC5,
+            0xDEC6,
+            0xDEC7,
+            0xDEC8,
+            0xDEC9,
+            0xDECA,
+            0xDECB,
+            0xDECC,
+            0xDECD,
+            0xDECE,
+            0xDECF,
+            0xDED0,
+            0xDED1,
+            0xDED2,
+            0xDED3,
+            0xDED4,
+            0xDED5,
+            0xDED6,
+            0xDED7,
+            0xDED8,
+        ]
+        return sum([self.bit_count(self.read_m(i)) for i in addr])
 
     def read_hp(self, start):
         return 256 * self.read_m(start) + self.read_m(start + 1)
