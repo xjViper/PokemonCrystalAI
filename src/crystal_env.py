@@ -374,7 +374,6 @@ class CrystalEnv(Env):
             self.pyboy.tick()
 
     def get_game_state_reward(self, print_stats=False):
-        money = self.read_money() - 3000
         seen_poke_count = self.read_seen_poke()
         state_scores = {
             # "event": self.reward_scale * self.update_max_event_rew(),
@@ -385,7 +384,6 @@ class CrystalEnv(Env):
             "dead": self.reward_scale * -0.1 * self.died_count,
             "badge": self.reward_scale * self.get_badges() * 5,
             #'op_poke': self.reward_scale*self.max_opponent_poke * 800,
-            "money": self.reward_scale * money * 3,
             "seen_poke": self.reward_scale * seen_poke_count * 400,
             "explore": self.reward_scale * self.get_knn_reward(),
         }
@@ -431,13 +429,6 @@ class CrystalEnv(Env):
     def read_bit(self, addr, bit: int) -> bool:
         # add padding so zero will read '0b100000000' instead of '0b0'
         return bin(256 + self.read_m(addr))[-bit - 1] == "1"
-
-    def read_money(self):
-        return (
-            (100 * 100 * self.read_bcd(self.read_m(0xD84E)))
-            + (100 * self.read_bcd(self.read_m(0xD84F)))
-            + int(16.11 * self.read_bcd(self.read_m(0xD850)))
-        )
 
     def read_seen_poke(self):
         addr = [

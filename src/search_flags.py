@@ -7,10 +7,7 @@ save = open("../PokemonCrystal.gbc.state", "rb")
 pyboy.load_state(save)
 # Inicializando a emulação
 pyboy.set_emulation_speed(5)
-
-
-def read_bcd(num):
-    return 10 * ((num >> 4) & 0x0F) + (num & 0x0F)
+pyboy.set_memory_value(0xD4B7, 5)
 
 
 def bit_count(bits):
@@ -55,17 +52,6 @@ def read_seen_poke():
     return sum([bit_count(pyboy.get_memory_value(i)) for i in addr])
 
 
-def read_money():
-    money1 = pyboy.get_memory_value(0xD84E)  # 0
-    money2 = pyboy.get_memory_value(0xD84F)  # 11
-    money3 = pyboy.get_memory_value(0xD850)  # 184
-    return (
-        (100 * 100 * read_bcd(money1))
-        + (100 * read_bcd(money2))
-        + int(16.11 * read_bcd(money3))
-    )
-
-
 prev_values = {
     "x_pos": None,
     "y_pos": None,
@@ -76,7 +62,6 @@ prev_values = {
     "map_n": None,
     "map_bank": None,
     "room": None,
-    "money": None,
     "j_badges": None,
     "k_badges": None,
     "seen": None,
@@ -99,8 +84,6 @@ while not pyboy.tick():
     W_map_n = pyboy.get_memory_value(0xD1C2)
     E_map_n = pyboy.get_memory_value(0xD1CE)
 
-    # test = pyboy.get_memory_value(0x5D11)
-
     j_badges = pyboy.get_memory_value(0xD857)
     k_badges = pyboy.get_memory_value(0xD858)
 
@@ -115,12 +98,10 @@ while not pyboy.tick():
         for a in [0xDCFE, 0xDD2E, 0xDD5E, 0xDD8E, 0xDDBE, 0xDDEE]
     ]
 
-    money = read_money()
-    seen = read_seen_poke()
+    hour = pyboy.get_memory_value(0xD4B7)
+    min = pyboy.get_memory_value(0xD4B8)
 
-    # money1 = read_bcd(moneyb1)
-    # money2 = read_bcd(moneyb2)
-    # money3 = read_bcd(moneyb3)
+    seen = read_seen_poke()
 
     if any(
         x != prev_values[key]
@@ -134,7 +115,6 @@ while not pyboy.tick():
             "map_n": map_n,
             "map_bank": map_bank,
             "room": room,
-            "money": money,
             "j_badges": j_badges,
             "k_badges": k_badges,
             "seen": seen,
@@ -152,7 +132,6 @@ while not pyboy.tick():
         prev_values["map_n"] = map_n
         prev_values["map_bank"] = map_bank
         prev_values["room"] = room
-        prev_values["money"] = money
         prev_values["j_badges"] = j_badges
         prev_values["k_badges"] = k_badges
         prev_values["seen"] = seen
@@ -162,39 +141,25 @@ while not pyboy.tick():
         # Imprimindo os valores das flags
         print(f"Posição X 0xDCB8: {x_pos}")
         print(f"Posição Y 0xDCB7: {y_pos}")
-        # Map Values:
-        # 3 - Route 29
-        # 4 - New Bark City
-        # 5 - Elm's Lab
-        # 6 - Player's House
-        # 7 - Player's Room
-        # 8 - Neighbor's House - New Bark City
-        # 9 - Wrap 1 - Elm's House
-        # 9 - Wrap 2 - Route 46
-        # 13 - Guard's House - Route 29 <--> Route 46
+
         print(f"Número do Mapa Conectado ao Norte 0xD1AA: {N_map_n}")
         print(f"Número do Mapa Conectado ao Sul 0xD1B5: {S_map_n}")
         print(f"Número do Mapa Conectado ao Oeste 0xD1C1: {W_map_n}")
         print(f"Número do Mapa Conectado ao Leste 0xD1CD: {E_map_n}")
 
-        print(f"Room Player is in 0xD148: {room}")
-        print(f"Map Bank 0xDCB5: {map_n}")
+        # print(f"Room Player is in 0xD148: {room}")
+        print(f"Map Bank 0xDCB5: {map_bank}")
         print(f"Número do Mapa 0xDCB6: {map_n}")
-        print(f"Número do Wrap 0xDCB4: {warp_n}")
+        # print(f"Número do Wrap 0xDCB4: {warp_n}")
 
-        print(f"Event Flags 0xDA72: {event_flags}")
+        # print(f"Event Flags 0xDA72: {event_flags}")
         print(f"Johto Badges 0xD857: {j_badges}")
         print(f"Kanto Badges 0xD858: {k_badges}")
 
-        # print(f"Dinheiro Bit 1 0xD84E: {money1}")
-        # print(f"Dinheiro Bit 2 0xD84F: {money2}")
-        # print(f"Dinheiro Bit 3 0xD850: {money3}")
-        print(f"Dinheiro Def Read Money: {money}")
+        print(f"Time 0xD4B7:0xD4B8: {hour}:{min}")
 
         print(f"Pokes Vistos Def Read Seen Poke: {seen}")
         print(f"Party Size: {pt_num}")
-
-        # print(f"Teste Flag 0x5d11: {test}")
 
         print(
             f"""Nível dos Pokes por Slot: 

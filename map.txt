@@ -1,0 +1,26 @@
+Padrão = [map_number,map_bank,N_map_number,S_map_number,W_map_number,E_map_number]
+
+
+Route 29 = [3,24,9,3,3,4]
+New Bark City = [4,24,9,3,3,2]
+Elm's Lab = [5,24,9,3,3,2]
+Player's House = [6,24,9,3,3,2]
+Player's Room = [7,24,9,3,3,2]
+Neighbor's House - New Bark City = [8,24,9,3,3,2]
+Elm's House = [9,24,9,3,3,2]
+Route 46 = [9,5,9,3,3,8]
+Guard's House - Route 29 <--> Route 46 = [13,24,9,3,3,4]
+CherryGrove City = [3,26,1,3,3,3]
+Guide's House - CherryGrove City = [7,26,1,3,3,3]
+South House - CherryGrove City = [8,26,1,3,3,3]
+West House - CherryGrove City = [6,26,1,3,3,3]
+PokeCenter F1 - CherryGrove City = [5,26,1,3,3,3]
+PokeCenter F2 - CherryGrove City = [1,20,1,3,3,3]
+Mart - CherryGrove City = [4,26,1,3,3,3]
+Route 30 = [1,26,2,3,3,3]
+Berry Guy's House - Route 30 = [9,26,2,3,3,3]
+Mr.Pokemon's House - Route 30 = [10,26,2,3,3,3]
+Route 31 = [2,26,2,1,5,3]
+Dark Cave - Route 31 = [78,3,2,1,5,2]
+Guard's House - Route 31 <--> Violet City = [
+Violet City = [
