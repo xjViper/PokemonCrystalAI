@@ -1,4 +1,5 @@
 from pyboy import PyBoy
+import os
 
 # Abrindo o jogo Pokemon Crystal
 pyboy = PyBoy("../PokemonCrystal.gbc")
@@ -6,12 +7,19 @@ pyboy = PyBoy("../PokemonCrystal.gbc")
 save = open("../PokemonCrystal.gbc.state", "rb")
 pyboy.load_state(save)
 # Inicializando a emulação
-pyboy.set_emulation_speed(5)
-pyboy.set_memory_value(0xD4B7, 5)
+pyboy.set_emulation_speed(6)
+pyboy.set_memory_value(0xD4B7, 20)
 
 
 def bit_count(bits):
     return bin(bits).count("1")
+
+
+def clear_terminal():
+    if os.name == "nt":
+        os.system("cls")
+    else:
+        os.system("clear")
 
 
 def read_seen_poke():
@@ -138,19 +146,21 @@ while not pyboy.tick():
         prev_values["pt_num"] = pt_num
         prev_values["levels"] = levels
 
+        clear_terminal()
+
         # Imprimindo os valores das flags
         print(f"Posição X 0xDCB8: {x_pos}")
         print(f"Posição Y 0xDCB7: {y_pos}")
+
+        # print(f"Room Player is in 0xD148: {room}")
+        # print(f"Número do Wrap 0xDCB4: {warp_n}")
+        print(f"Número do Mapa 0xDCB6: {map_n}")
+        print(f"Map Bank 0xDCB5: {map_bank}")
 
         print(f"Número do Mapa Conectado ao Norte 0xD1AA: {N_map_n}")
         print(f"Número do Mapa Conectado ao Sul 0xD1B5: {S_map_n}")
         print(f"Número do Mapa Conectado ao Oeste 0xD1C1: {W_map_n}")
         print(f"Número do Mapa Conectado ao Leste 0xD1CD: {E_map_n}")
-
-        # print(f"Room Player is in 0xD148: {room}")
-        print(f"Map Bank 0xDCB5: {map_bank}")
-        print(f"Número do Mapa 0xDCB6: {map_n}")
-        # print(f"Número do Wrap 0xDCB4: {warp_n}")
 
         # print(f"Event Flags 0xDA72: {event_flags}")
         print(f"Johto Badges 0xD857: {j_badges}")
@@ -172,4 +182,5 @@ while not pyboy.tick():
         )
 
 # Encerrando a emulação
+clear_terminal()
 pyboy.stop()
