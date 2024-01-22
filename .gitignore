@@ -160,7 +160,7 @@ cython_debug/
 #.idea/
 
 # Project folders and files
-Pokemon*
+/Pokemon*
 
 /src/session_*/
 /src/test.py
