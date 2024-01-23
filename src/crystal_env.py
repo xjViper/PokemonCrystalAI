@@ -376,7 +376,7 @@ class CrystalEnv(Env):
     def get_game_state_reward(self, print_stats=False):
         seen_poke_count = self.read_seen_poke()
         state_scores = {
-            # "event": self.reward_scale * self.update_max_event_rew(),
+            "event": self.reward_scale * self.update_max_event_rew(),
             #'party_xp': self.reward_scale*0.1*sum(poke_xps),
             "level": self.reward_scale * self.get_levels_reward(),
             "heal": self.reward_scale * self.total_healing_rew,
@@ -572,18 +572,15 @@ class CrystalEnv(Env):
                 )
 
     def get_all_events_reward(self):
-        #! Change the flags, actually the AI starts with 5205 'Event' points
-        event_flags_start = 0x828
-        event_flags_end = 0xA0A
-        base_event_flags = 30
+        event_flags_start = 0xDA71
+        event_flags_end = 0xDB71
         return max(
             sum(
                 [
                     self.bit_count(self.read_m(i))
                     for i in range(event_flags_start, event_flags_end)
                 ]
-            )
-            - base_event_flags,
+            ),
             0,
         )
 
