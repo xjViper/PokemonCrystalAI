@@ -4,11 +4,47 @@ import os
 # Abrindo o jogo Pokemon Crystal
 pyboy = PyBoy("../PokemonCrystal.gbc")
 # Carregando o Save Inicial
-save = open("../PokemonCrystal.gbc.state", "rb")
+save = open("../state/PokemonCrystal.gbc.state", "rb")
 pyboy.load_state(save)
 # Inicializando a emulação
 pyboy.set_emulation_speed(6)
 pyboy.set_memory_value(0xD4B7, 20)
+
+
+def get_all_events_reward():
+    event_flags_start = 0xDA72
+    event_flags_end = 0xDB71
+    return max(
+        sum(
+            [
+                bit_count(pyboy.get_memory_value(i))
+                for i in range(event_flags_start, event_flags_end)
+            ]
+        ),
+        0,
+    )
+
+
+def get_badges():
+    return sum(
+        [
+            bit_count(pyboy.get_memory_value(0xD857)),
+            bit_count(pyboy.get_memory_value(0xD858)),
+        ],
+        0,
+    )
+
+
+def read_bcd(num):
+    return 10 * ((num >> 4) & 0x0F) + (num & 0x0F)
+
+
+def read_money():
+    return (
+        100 * 100 * read_bcd(pyboy.get_memory_value(0xD84E))
+        + 100 * read_bcd(pyboy.get_memory_value(0xD84F))
+        + read_bcd(pyboy.get_memory_value(0xD850))
+    )
 
 
 def bit_count(bits):
@@ -70,8 +106,8 @@ prev_values = {
     "map_n": None,
     "map_bank": None,
     "room": None,
-    "j_badges": None,
-    "k_badges": None,
+    # "j_badges": None,
+    # "k_badges": None,
     "seen": None,
     "pt_num": None,
     "levels": [None, None, None, None, None, None],
@@ -92,22 +128,27 @@ while not pyboy.tick():
     W_map_n = pyboy.get_memory_value(0xD1C2)
     E_map_n = pyboy.get_memory_value(0xD1CE)
 
-    j_badges = pyboy.get_memory_value(0xD857)
-    k_badges = pyboy.get_memory_value(0xD858)
+    # j_badges = pyboy.get_memory_value(0xD857)
+
+    # k_badges = pyboy.get_memory_value(0xD858)
+
+    # badges = get_badges()
 
     pt_num = pyboy.get_memory_value(0xDCD7)
 
     room = pyboy.get_memory_value(0xD148)
 
-    event_flags = pyboy.get_memory_value(0xDA72)
+    event_flags = get_all_events_reward()
 
     levels = [
         pyboy.get_memory_value(a)
         for a in [0xDCFE, 0xDD2E, 0xDD5E, 0xDD8E, 0xDDBE, 0xDDEE]
     ]
 
-    hour = pyboy.get_memory_value(0xD4B7)
-    min = pyboy.get_memory_value(0xD4B8)
+    # hour = pyboy.get_memory_value(0xD4B7)
+    # min = pyboy.get_memory_value(0xD4B8)
+
+    money = read_money()
 
     seen = read_seen_poke()
 
@@ -123,8 +164,8 @@ while not pyboy.tick():
             "map_n": map_n,
             "map_bank": map_bank,
             "room": room,
-            "j_badges": j_badges,
-            "k_badges": k_badges,
+            # "j_badges": j_badges,
+            # "k_badges": k_badges,
             "seen": seen,
             "pt_num": pt_num,
             "levels": levels,
@@ -140,8 +181,8 @@ while not pyboy.tick():
         prev_values["map_n"] = map_n
         prev_values["map_bank"] = map_bank
         prev_values["room"] = room
-        prev_values["j_badges"] = j_badges
-        prev_values["k_badges"] = k_badges
+        # prev_values["j_badges"] = j_badges
+        # prev_values["k_badges"] = k_badges
         prev_values["seen"] = seen
         prev_values["pt_num"] = pt_num
         prev_values["levels"] = levels
@@ -162,11 +203,13 @@ while not pyboy.tick():
         print(f"Número do Mapa Conectado ao Oeste 0xD1C1: {W_map_n}")
         print(f"Número do Mapa Conectado ao Leste 0xD1CD: {E_map_n}")
 
-        # print(f"Event Flags 0xDA72: {event_flags}")
-        print(f"Johto Badges 0xD857: {j_badges}")
-        print(f"Kanto Badges 0xD858: {k_badges}")
+        # print(f"Johto Badges 0xD857: {j_badges}")
+        # print(f"Kanto Badges 0xD858: {k_badges}")
+        # print(f"Badges Def Get Badges: {badges}")
 
-        print(f"Time 0xD4B7:0xD4B8: {hour}:{min}")
+        # print(f"Event Flags Def Event Flags: {event_flags * 3}")
+        # print(f"Time 0xD4B7:0xD4B8: {hour}:{min}")
+        print(f"Money: {money}")
 
         print(f"Pokes Vistos Def Read Seen Poke: {seen}")
         print(f"Party Size: {pt_num}")
@@ -182,5 +225,5 @@ while not pyboy.tick():
         )
 
 # Encerrando a emulação
-clear_terminal()
 pyboy.stop()
+clear_terminal()
