@@ -215,10 +215,21 @@ class CrystalEnv(Env):
         # Initing index - the maximum number of elements should be known beforehand
         self.knn_index.init_index(max_elements=20000, ef_construction=100, M=16)
 
+    def read_map(self):
+        map_number = self.read_m(0xDCB6)
+        map_bank = self.read_m(0xDCB5)
+        N_map_n = self.read_m(0xD1AA)
+        S_map_n = self.read_m(0xD1B6)
+        W_map_n = self.read_m(0xD1C2)
+        E_map_n = self.read_m(0xD1CE)
+        map = [map_number, map_bank, N_map_n, S_map_n, W_map_n, E_map_n]
+        return map
+
     def append_agent_stats(self, action):
-        x_pos = self.read_m(0xD362)
-        y_pos = self.read_m(0xD361)
-        map_n = self.read_m(0xD35E)
+        x_pos = self.read_m(0xDCB8)
+        y_pos = self.read_m(0xDCB7)
+        map = self.read_map()
+
         levels = [
             self.read_m(a) for a in [0xDCFE, 0xDD2E, 0xDD5E, 0xDD8E, 0xDDBE, 0xDDEE]
         ]
@@ -229,8 +240,8 @@ class CrystalEnv(Env):
                 "step": self.step_count,
                 "x": x_pos,
                 "y": y_pos,
-                "map": map_n,
-                "map_location": self.get_map_location(map_n),
+                "map": map,
+                "map_location": self.get_map_location(map),
                 "last_action": action,
                 "pcount": self.read_m(0xDCD7),
                 "levels": levels,
@@ -253,106 +264,67 @@ class CrystalEnv(Env):
 
     def get_map_location(self, map_idx):
         map_locations = {
-            "01": "New Bark Town",
-            "02": "Route 29",
-            "03": "Cherrygrove City",
-            "04": "Route 30",
-            "05": "Route 31",
-            "06": "Violet City",
-            "07": "Sprout Tower",
-            "08": "Route 32",
-            "09": "Ruins of Alph",
-            "0A": "Union Cave",
-            "0B": "Route 33",
-            "0C": "Azalea Town",
-            "0D": "Slowpoke Well",
-            "0E": "Ilex Forest",
-            "0F": "Route 34",
-            "10": "Goldenrod City",
-            "11": "Radio Tower",
-            "12": "Route 35",
-            "13": "National Park",
-            "14": "Route 36",
-            "15": "Route 37",
-            "16": "Ecruteak City",
-            "17": "Tin Tower",
-            "18": "Burned Tower",
-            "19": "Route 38",
-            "1A": "Route 39",
-            "1B": "Olivine City",
-            "1C": "Lighthouse",
-            "1D": "Battle Tower",
-            "1E": "Route 40",
-            "1F": "Whirl Islands",
-            "20": "Route 41",
-            "21": "Cianwood City",
-            "22": "Route 42",
-            "23": "Mt.Mortar",
-            "24": "Mahogany Town",
-            "25": "Route 43",
-            "26": "Lake of Rage",
-            "27": "Route 44",
-            "28": "Ice Path",
-            "29": "Blackthorn City",
-            "2A": "Dragons Den",
-            "2B": "Route 45",
-            "2C": "Dark Cave",
-            "2D": "Route 46",
-            "2E": "Silver Cave",
-            "2F": "Pallet Town",
-            "30": "Route 1",
-            "31": "Viridian City",
-            "32": "Route 2",
-            "33": "Pewter City",
-            "34": "Route 3",
-            "35": "Mt.Moon",
-            "36": "Route 4",
-            "37": "Cerulean City",
-            "38": "Route 24",
-            "39": "Route 25",
-            "3A": "Route 5",
-            "3B": "Underground",
-            "3C": "Route 6",
-            "3D": "Vermilion City",
-            "3E": "Diglett's Cave",
-            "3F": "Route 7",
-            "40": "Route 8",
-            "41": "Route 9",
-            "42": "Rock Tunnel",
-            "43": "Route 10",
-            "44": "Power Plant",
-            "45": "Lavender Town",
-            "46": "Lav Radio Tower",
-            "47": "Celadon City",
-            "48": "Saffron City",
-            "49": "Route 11",
-            "4A": "Route 12",
-            "4B": "Route 13",
-            "4C": "Route 14",
-            "4D": "Route 15",
-            "4E": "Route 16",
-            "4F": "Route 17",
-            "50": "Route 18",
-            "51": "Fuchsia City",
-            "52": "Route 19",
-            "53": "Route 20",
-            "54": "Seafoam Islands",
-            "55": "Cinnabar Island",
-            "56": "Route 21",
-            "57": "Route 22",
-            "58": "Victory Road",
-            "59": "Route 23",
-            "5A": "Indigo Plateau",
-            "5B": "Route 26",
-            "5C": "Route 27",
-            "5D": "Tohjo Falls",
-            "5E": "Route 28",
-            "5F": "New Bark Town (Fast Ship)",
+            "[4,24,9,3,3,2]": "New Bark Town",
+            "[3,24,9,3,3,4]": "Route 29",
+            "[3,26,1,3,3,3]": "Cherrygrove City",
+            "[1,26,2,3,3,3]": "Route 30",
+            "[2,26,2,1,5,3]": "Route 31",
+            "[5,10,4,1,3,2]": "Violet City",
+            "[1,3,4,1,3,2]": "Sprout Tower F1",
+            "[1,10,5,6,3,5]": "Route 32",
+            "[13,24,9,3,3,4]": "Guard's House - Route 29 <--> Route 46",
+            "[3,26,1,3,3,3]": "CherryGrove City",
+            "[7,26,1,3,3,3]": "Guide's House - CherryGrove City",
+            "[8,26,1,3,3,3]": "South House - CherryGrove City",
+            "[6,26,1,3,3,3]": "West House - CherryGrove City",
+            "[5,26,1,3,3,3]": "PokeCenter F1 - CherryGrove City",
+            "[1,20,1,3,3,3]": "PokeCenter F2 - CherryGrove City",
+            "[4,26,1,3,3,3]": "Mart - CherryGrove City",
+            "[1,26,2,3,3,3]": "Route 30",
+            "[9,26,2,3,3,3]": "Berry Guy's House - Route 30",
+            "[10,26,2,3,3,3]": "Mr.Pokemon's House - Route 30",
+            "[2,26,2,1,5,3]": "Route 31",
+            "[78,3,2,1,5,2]": "Dark Cave - Route 31",
+            "[11,26,4,1,3,2]": "Guard's House - Route 31 <--> Violet City",
+            "[5,10,4,1,3,2]": "Violet City",
+            "[10,10,4,1,3,2]": "PokeCenter F1 - Violet City",
+            "[1,20,4,1,3,2]": "PokeCenter F2 - Violet City",
+            "[11,10,4,1,3,2]": "Onix's Trader - Violet City",
+            "[8,10,4,1,3,2]": "Pokemon Academy - Violet City",
+            "[7,10,4,1,3,2]": "Gym - Violet City",
+            "[6,10,4,1,3,2]": "Mart - Violet City",
+            "[9,10,4,1,3,2]": "Pidgey's House - Violet City",
+            "[1,3,4,1,3,2]": "Sprout Tower F1 - Violet City",
+            "[2,3,4,1,3,2]": "Sprout Tower F2 - Violet City",
+            "[3,3,4,1,3,2]": "Sprout Tower F3 - Violet City",
+            "[3,10,4,2,3,5]": "Route 36",
+            "[16,10,4,2,3,5]": "Guard's House - Route 36 <--> Ruins of Alph",
+            "[22,3,4,2,3,5]": "Ruins of Alph",
+            "[28,3,4,2,3,5]": "Research Center - Ruins of Alph",
+            "[24,3,4,2,3,5]": "Cave North - Ruins of Alph",
+            "[27,3,4,2,3,5]": "Cave Center - Ruins of Alph",
+            "[12,10,5,6,3,5]": "Guard's House - Route 32 <--> Ruins of Alph",
+            "[1,10,5,6,3,5]": "Route 32",
+            "[13,10,5,6,3,5]": "PokeCenter F1 - Route 32",
+            "[1,20,5,6,3,5]": "PokeCenter F2 - Route 32",
+            "[37,3,5,6,3,5]": "Union Cave F1",
+            "[38,3,5,6,3,5]": "Union Cave BF1",
+            "[6,8,1,6,7,5]": "Route 33",
+            "[7,8,1,6,1,6]": "Azalea Town",
+            "[3,8,1,6,1,6]": "Mart - Azalea Town",
+            "[1,8,1,6,1,6]": "PokeCenter F1 - Azalea Town",
+            "[1,20,1,6,1,6]": "PokeCenter F2 - Azalea Town",
+            "[2,8,1,6,1,6]": "Charcoal's House - Azalea Town",
+            "[4,8,1,6,1,6]": "Kurt's House - Azalea Town",
+            "[5,8,1,6,1,6]": "Gym - Azalea Town",
+            "[22,11,1,6,1,6]": "Guard's House - Azalea Town <--> Ilex Forest",
+            "[52,3,1,6,1,6]": "Ilex Forest",
+            "[40,3,1,6,1,6]": "Slowpoke Well F1",
         }
-        if map_idx in map_locations.keys():
-            return map_locations[map_idx]
+        if str(map_idx) in map_locations.keys():
+            return map_locations[str(map_idx)]
         else:
-            return "Unknown Location"
+            return "Unknown Location - {}".format(map_idx)
 
     def run_action_on_emulator(self, action):
         # press button then release after some steps
