@@ -26,7 +26,7 @@ class CrystalEnv(Env):
         self.s_path.mkdir(exist_ok=True)
         self.instance_id = str(uuid.uuid4())[:8]
         self.similar_frame_dist = 2_000_000.0
-        self.init_state = "../PokemonCrystal.gbc.state"
+        self.init_state = "../state/INIT_Poke_Crystal.gbc.state"
 
         self.valid_actions = [
             WindowEvent.PRESS_ARROW_DOWN,
@@ -544,7 +544,7 @@ class CrystalEnv(Env):
                 )
 
     def get_all_events_reward(self):
-        event_flags_start = 0xDA71
+        event_flags_start = 0xDA72
         event_flags_end = 0xDB71
         return max(
             sum(
@@ -552,7 +552,8 @@ class CrystalEnv(Env):
                     self.bit_count(self.read_m(i))
                     for i in range(event_flags_start, event_flags_end)
                 ]
-            ),
+            )
+            - 125,
             0,
         )
 
