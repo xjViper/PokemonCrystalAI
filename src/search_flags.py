@@ -4,11 +4,11 @@ import os
 # Abrindo o jogo Pokemon Crystal
 pyboy = PyBoy("../PokemonCrystal.gbc")
 # Carregando o Save Inicial
-save = open("../state/PokemonCrystal.gbc.state", "rb")
+save = open("../PokemonCrystal.gbc.state", "rb")
 pyboy.load_state(save)
 # Inicializando a emulação
 pyboy.set_emulation_speed(6)
-pyboy.set_memory_value(0xD4B7, 20)
+pyboy.set_memory_value(0xD4B7, 6)
 
 
 def get_all_events_reward():
@@ -20,7 +20,8 @@ def get_all_events_reward():
                 bit_count(pyboy.get_memory_value(i))
                 for i in range(event_flags_start, event_flags_end)
             ]
-        ),
+        )
+        - 125,
         0,
     )
 
@@ -136,7 +137,7 @@ while not pyboy.tick():
 
     pt_num = pyboy.get_memory_value(0xDCD7)
 
-    room = pyboy.get_memory_value(0xD148)
+    # room = pyboy.get_memory_value(0xD148)
 
     event_flags = get_all_events_reward()
 
@@ -163,7 +164,7 @@ while not pyboy.tick():
             "E_map_n": E_map_n,
             "map_n": map_n,
             "map_bank": map_bank,
-            "room": room,
+            # "room": room,
             # "j_badges": j_badges,
             # "k_badges": k_badges,
             "seen": seen,
@@ -180,7 +181,7 @@ while not pyboy.tick():
         prev_values["E_map_n"] = E_map_n
         prev_values["map_n"] = map_n
         prev_values["map_bank"] = map_bank
-        prev_values["room"] = room
+        # prev_values["room"] = room
         # prev_values["j_badges"] = j_badges
         # prev_values["k_badges"] = k_badges
         prev_values["seen"] = seen
@@ -207,7 +208,7 @@ while not pyboy.tick():
         # print(f"Kanto Badges 0xD858: {k_badges}")
         # print(f"Badges Def Get Badges: {badges}")
 
-        # print(f"Event Flags Def Event Flags: {event_flags * 3}")
+        print(f"Event Flags Def Event Flags: {event_flags}")
         # print(f"Time 0xD4B7:0xD4B8: {hour}:{min}")
         print(f"Money: {money}")
 
