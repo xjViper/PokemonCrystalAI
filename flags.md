@@ -1,131 +1,48 @@
-00:212a GetCurrentMapSceneID
-00:2147 GetMapSceneID X
-00:2151 GetMapSceneID.loop
-00:2160 GetMapSceneID.next
-00:2167 GetMapSceneID.end
-00:216a GetMapSceneID.found
-00:216d GetMapSceneID.done
-00:24e4 ChangeMap
-00:269a MapTextbox
-00:2be5 GetMapPointer
-00:2bed GetAnyMapPointer
-00:2c04 GetMapField
-00:2c0c GetAnyMapField
-00:2c1c SwitchToMapAttributesBank
-00:2c24 SwitchToAnyMapAttributesBank
-00:2c29 GetMapAttributesBank
-00:2c31 GetAnyMapAttributesBank
-00:2c3d CopyMapPartial
-00:2c52 SwitchToMapScriptsBank
-00:2c57 GetMapScriptsBank
-00:2c5b GetAnyMapBlocksBank
-00:2c7d GetMapAttributesPointer
-00:2c8a GetMapEnvironment
-00:2c98 Map_DummyFunction
-00:2c99 GetAnyMapEnvironment
-00:2ca7 GetAnyMapTileset
-00:2caf GetWorldMapLocation X
-00:2cbd GetMapMusic
-09:4b83 MoneyString X
-09:4b89 CoinString
-09:4b8e ShowMoney_TerminatorString
-13:501e MapScenes
-1a:45af ReceivedZephyrBadgeText
-24:5ae1 PokegearMap X
-24:5aec PokegearMap.kanto
-24:5bb5 TownMapBubble
-24:5bf4 TownMapBubble.Where
-24:5bfb TownMapBubble.Name
-24:5d11 Pokedex_GetArea X
-25:4000 MapGroupPointers
-25:4034 MapGroup_Olivine
-25:40b2 MapGroup_Mahogany
-25:40f1 MapGroup_Dungeons
-25:4424 MapGroup_Ecruteak
-25:4475 MapGroup_Blackthorn
-25:44cf MapGroup_Cinnabar
-25:4517 MapGroup_Cerulean
-25:45b0 MapGroup_Azalea
-25:45ef MapGroup_LakeOfRage
-25:4625 MapGroup_Violet
-25:46be MapGroup_Goldenrod
-25:4796 MapGroup_Vermilion
-25:480b MapGroup_Pallet
-25:4841 MapGroup_Pewter
-25:4889 MapGroup_FastShip
-25:48f5 MapGroup_Indigo
-25:493d MapGroup_Fuchsia
-25:49b2 MapGroup_Lavender
-25:4a30 MapGroup_Silver
-25:4a54 MapGroup_CableClub
-25:4a8a MapGroup_Celadon
-25:4b74 MapGroup_Cianwood
-25:4c04 MapGroup_Viridian
-25:4c79 MapGroup_NewBark
-25:4cee MapGroup_Saffron
-25:4d75 MapGroup_Cherrygrove
-19849
-01:d4e6 wPlayerMapX
-01:d4e7 wPlayerMapY
-01:d4e8 wPlayerLastMapX
-01:d4e9 wPlayerLastMapY
-01:d4ea wPlayerInitX
-01:d4eb wPlayerInitY
-00:c2c0 wMapMusic
-01:d198 wMapPartial
-01:d198 wMapAttributesBank
-01:d199 wMapTileset
-01:d19a wEnvironment
-01:d19b wMapAttributesPointer
-01:d19d wMapPartialEnd
-01:d19d wMapBorderBlock
-01:d19d wMapAttributes
-01:d19e wMapHeight
-01:d19f wMapWidth
-01:d1a0 wMapBlocksBank
-01:d1a1 wMapBlocksPointer
-01:d1a3 wMapScriptsBank
-01:d1a4 wMapScriptsPointer
-01:d1a6 wMapEventsPointer
-01:d1a8 wMapConnections
-01:d1a9 wMapAttributesEnd
-01:d1a9 wNorthConnectedMapGroup
-01:d1a9 wNorthMapConnection
-01:d1aa wNorthConnectedMapNumber
-01:d1ab wNorthConnectionStripPointer
-01:d1ad wNorthConnectionStripLocation
-01:d1af wNorthConnectionStripLength
-01:d1b0 wNorthConnectedMapWidth
-01:d1b1 wNorthConnectionStripYOffset
-01:d1b2 wNorthConnectionStripXOffset
-01:d1b3 wNorthConnectionWindow
-01:d1b5 wSouthConnectedMapGroup
-01:d1b5 wSouthMapConnection
-01:d1b6 wSouthConnectedMapNumber
-01:d1b7 wSouthConnectionStripPointer
-01:d1b9 wSouthConnectionStripLocation
-01:d1bb wSouthConnectionStripLength
-01:d1bc wSouthConnectedMapWidth
-01:d1bd wSouthConnectionStripYOffset
-01:d1be wSouthConnectionStripXOffset
-01:d1bf wSouthConnectionWindow
-01:d1c1 wWestConnectedMapGroup
-01:d1c1 wWestMapConnection
-01:d1c2 wWestConnectedMapNumber
-01:d1c3 wWestConnectionStripPointer
-01:d1c5 wWestConnectionStripLocation
-01:d1c7 wWestConnectionStripLength
-01:d1c8 wWestConnectedMapWidth
-01:d1c9 wWestConnectionStripYOffset
-01:d1ca wWestConnectionStripXOffset
-01:d1cb wWestConnectionWindow
-01:d1cd wEastMapConnection
-01:d1cd wEastConnectedMapGroup
-01:d1ce wEastConnectedMapNumber
-01:d1cf wEastConnectionStripPointer
-01:d1d1 wEastConnectionStripLocation
-01:d1d3 wEastConnectionStripLength
-01:d1d4 wEastConnectedMapWidth
-01:d1d5 wEastConnectionStripYOffset
-01:d1d6 wEastConnectionStripXOffset
-01:d1d7 wEastConnectionWindow
+# Memory Address to Search
+
+The memory address are found in this [Repository](https://github.com/pret/pokecrystal).
+
+## Actual Search
+
+#### Improve fight rewards
+
+The idea of researching these battle flags is to add a reward for using different movements and encourage AI to fight
+
+### Battle Reward - 2 bits
+
+00:c686 wBattleReward
+
+---
+
+### Poke Move PP - 4 bits
+
+<!-- 03:d122 wBT_OTMon1PP
+03:d15d wBT_OTMon2PP
+03:d198 wBT_OTMon3PP -->
+
+- 00:c634 wBattleMonPP
+
+- 01:d29f wOTPartyMon1PP
+- 01:d2cf wOTPartyMon2PP
+- 01:d2ff wOTPartyMon3PP
+- 01:d32f wOTPartyMon4PP
+- 01:d35f wOTPartyMon5PP
+- 01:d38f wOTPartyMon6PP
+
+- 01:dcf6 wPartyMon1PP
+- 01:dd26 wPartyMon2PP
+- 01:dd56 wPartyMon3PP
+- 01:dd86 wPartyMon4PP
+- 01:ddB6 wPartyMon5PP
+- 01:ddE6 wPartyMon6PP
+
+---
+
+### Poke Moves - 4 bits
+
+- 01:dce1 wPartyMon1Moves
+- 01:dd11 wPartyMon2Moves
+- 01:dd41 wPartyMon3Moves
+- 01:dd71 wPartyMon4Moves
+- 01:dda1 wPartyMon5Moves
+- 01:ddd1 wPartyMon6Moves
