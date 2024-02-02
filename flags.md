@@ -46,3 +46,8 @@ The idea of researching these battle flags is to add a reward for using differen
 - 01:dd71 wPartyMon4Moves
 - 01:dda1 wPartyMon5Moves
 - 01:ddd1 wPartyMon6Moves
+
+### Battle Type
+
+- 01:d22d wBattleMode
+- 01:d230 wBattleType

@@ -11,19 +11,55 @@ pyboy.set_emulation_speed(6)
 pyboy.set_memory_value(0xD4B7, 6)
 
 
+def read_hp(start):
+    return 256 * pyboy.get_memory_value(start) + pyboy.get_memory_value(start + 1)
+
+
+def read_hp_fraction():
+    hp_sum = sum(
+        [read_hp(add) for add in [0xDD01, 0xDD31, 0xDD61, 0xDD91, 0xDDC1, 0xDDF1]]
+    )
+    max_hp_sum = sum(
+        [read_hp(add) for add in [0xDD03, 0xDD33, 0xDD63, 0xDD93, 0xDDC3, 0xDDF3]]
+    )
+    max_hp_sum = max(max_hp_sum, 1)
+    return hp_sum / max_hp_sum
+
+
+def hp_sum():
+    hp_sum = sum(
+        [read_hp(add) for add in [0xDD01, 0xDD31, 0xDD61, 0xDD91, 0xDDC1, 0xDDF1]]
+    )
+    return hp_sum
+
+
+def max_hp_sum():
+    max_hp_sum = sum(
+        [read_hp(add) for add in [0xDD03, 0xDD33, 0xDD63, 0xDD93, 0xDDC3, 0xDDF3]]
+    )
+    return max_hp_sum
+
+
 def get_all_events_reward():
     event_flags_start = 0xDA72
     event_flags_end = 0xDB71
-    return max(
-        sum(
-            [
-                bit_count(pyboy.get_memory_value(i))
-                for i in range(event_flags_start, event_flags_end)
-            ]
-        )
-        - 125,
-        0,
-    )
+
+    return [
+        int(bit)
+        for i in range(event_flags_start, event_flags_end)
+        for bit in f"{pyboy.get_memory_value(i):08b}"
+    ]
+
+    # return max(
+    #     sum(
+    #         [
+    #             bit_count(pyboy.get_memory_value(i))
+    #             for i in range(event_flags_start, event_flags_end)
+    #         ]
+    #     )
+    #     - 125,
+    #     0,
+    # )
 
 
 def get_badges():
@@ -118,8 +154,8 @@ prev_values = {
 # Loop principal para emular o jogo
 while not pyboy.tick():
     # Obtendo os valores das flags
-    x_pos = pyboy.get_memory_value(0xDCB8)
-    y_pos = pyboy.get_memory_value(0xDCB7)
+    # x_pos = pyboy.get_memory_value(0xDCB8)
+    # y_pos = pyboy.get_memory_value(0xDCB7)
     map_n = pyboy.get_memory_value(0xDCB6)
     map_bank = pyboy.get_memory_value(0xDCB5)
     warp_n = pyboy.get_memory_value(0xDCB4)
@@ -132,14 +168,16 @@ while not pyboy.tick():
     # j_badges = pyboy.get_memory_value(0xD857)
 
     # k_badges = pyboy.get_memory_value(0xD858)
-
-    # badges = get_badges()
+    badges = get_badges()
 
     pt_num = pyboy.get_memory_value(0xDCD7)
 
     # room = pyboy.get_memory_value(0xD148)
 
     event_flags = get_all_events_reward()
+    hp_fraction = read_hp_fraction()
+    pt_hp = hp_sum()
+    pt_max_hp = max_hp_sum()
 
     levels = [
         pyboy.get_memory_value(a)
@@ -156,8 +194,8 @@ while not pyboy.tick():
     if any(
         x != prev_values[key]
         for key, x in {
-            "x_pos": x_pos,
-            "y_pos": y_pos,
+            # "x_pos": x_pos,
+            # "y_pos": y_pos,
             "N_map_n": N_map_n,
             "S_map_n": S_map_n,
             "W_map_n": W_map_n,
@@ -173,8 +211,8 @@ while not pyboy.tick():
         }.items()
     ):
         # Atualizando os valores anteriores
-        prev_values["x_pos"] = x_pos
-        prev_values["y_pos"] = y_pos
+        # prev_values["x_pos"] = x_pos
+        # prev_values["y_pos"] = y_pos
         prev_values["N_map_n"] = N_map_n
         prev_values["S_map_n"] = S_map_n
         prev_values["W_map_n"] = W_map_n
@@ -191,8 +229,8 @@ while not pyboy.tick():
         clear_terminal()
 
         # Imprimindo os valores das flags
-        print(f"Posição X 0xDCB8: {x_pos}")
-        print(f"Posição Y 0xDCB7: {y_pos}")
+        # print(f"Posição X 0xDCB8: {x_pos}")
+        # print(f"Posição Y 0xDCB7: {y_pos}")
 
         # print(f"Room Player is in 0xD148: {room}")
         # print(f"Número do Wrap 0xDCB4: {warp_n}")
@@ -206,7 +244,7 @@ while not pyboy.tick():
 
         # print(f"Johto Badges 0xD857: {j_badges}")
         # print(f"Kanto Badges 0xD858: {k_badges}")
-        # print(f"Badges Def Get Badges: {badges}")
+        print(f"Badges Def Get Badges: {badges}")
 
         print(f"Event Flags Def Event Flags: {event_flags}")
         # print(f"Time 0xD4B7:0xD4B8: {hour}:{min}")
@@ -214,6 +252,9 @@ while not pyboy.tick():
 
         print(f"Pokes Vistos Def Read Seen Poke: {seen}")
         print(f"Party Size: {pt_num}")
+        print(f"HP Fraction: {hp_fraction}")
+        print(f"HP Sum: {pt_hp}")
+        print(f"Max HP Sum: {pt_max_hp}")
 
         print(
             f"""Nível dos Pokes por Slot: 

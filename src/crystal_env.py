@@ -21,13 +21,31 @@ from pyboy.utils import WindowEvent
 
 
 class CrystalEnv(Env):
-    def __init__(self, n_steps, extra_buttons, session_path):
-        self.extra_buttons = extra_buttons
-        self.s_path = session_path
-        self.s_path.mkdir(exist_ok=True)
-        self.instance_id = str(uuid.uuid4())[:8]
+    def __init__(self, env_conf):
+        self.max_steps = 20000 if "n_steps" not in env_conf else env_conf["n_steps"]
+        self.instance_id = (
+            str(uuid.uuid4())[:8]
+            if "instance_id" not in env_conf
+            else env_conf["instance_id"]
+        )
         self.similar_frame_dist = 2_000_000.0
-        self.init_state = "../state/INIT_Poke_Crystal.gbc.state"
+        self.init_state = (
+            "../state/INIT_Poke_Crystal.gbc.state"
+            if "init_state" not in env_conf
+            else env_conf["init_state"]
+        )
+        self.act_freq = 24 if "action_freq" not in env_conf else env_conf["action_freq"]
+        self.explore_weight = (
+            1 if "explore_weight" not in env_conf else env_conf["explore_weight"]
+        )
+        self.reward_scale = (
+            1 if "reward_scale" not in env_conf else env_conf["reward_scale"]
+        )
+        self.print_rewards = (
+            True if "print_rewards" not in env_conf else env_conf["print_rewards"]
+        )
+        self.s_path = env_conf["session_path"]
+        self.s_path.mkdir(exist_ok=True)
 
         self.valid_actions = [
             WindowEvent.PRESS_ARROW_DOWN,
@@ -36,24 +54,28 @@ class CrystalEnv(Env):
             WindowEvent.PRESS_ARROW_UP,
             WindowEvent.PRESS_BUTTON_A,
             WindowEvent.PRESS_BUTTON_B,
+            # WindowEvent.PRESS_BUTTON_START,
         ]
 
-        if self.extra_buttons:
-            self.valid_actions.extend(
-                [WindowEvent.PRESS_BUTTON_START, WindowEvent.PASS]
-            )
-
-        self.release_arrow = [
+        self.release_actions = [
             WindowEvent.RELEASE_ARROW_DOWN,
             WindowEvent.RELEASE_ARROW_LEFT,
             WindowEvent.RELEASE_ARROW_RIGHT,
             WindowEvent.RELEASE_ARROW_UP,
-        ]
-
-        self.release_button = [
             WindowEvent.RELEASE_BUTTON_A,
             WindowEvent.RELEASE_BUTTON_B,
+            # WindowEvent.RELEASE_BUTTON_START,
         ]
+
+        self.move_actions = [
+            WindowEvent.PRESS_ARROW_DOWN,
+            WindowEvent.PRESS_ARROW_LEFT,
+            WindowEvent.PRESS_ARROW_RIGHT,
+            WindowEvent.PRESS_ARROW_UP,
+        ]
+
+        self.prev_x_pos = 0
+        self.prev_y_pos = 0
 
         self.action_space = spaces.Discrete(len(self.valid_actions))
         self.observation_space = spaces.Box(
@@ -67,11 +89,8 @@ class CrystalEnv(Env):
             window_type="SDL2",
             hide_window="--quiet" in sys.argv,
         )
-        self.max_steps = n_steps
-        self.print_rewards = True
+
         self.act_freq = 24
-        self.reward_scale = 3
-        self.explore_weight = 3
         self.reset_count = 0
         self.all_runs = []
 
@@ -107,6 +126,7 @@ class CrystalEnv(Env):
         self.max_level_rew = 0
         self.last_health = 1
         self.total_healing_rew = 0
+        self.noop_move = 0
         self.died_count = 0
         self.party_size = 0
         self.step_count = 0
@@ -226,10 +246,22 @@ class CrystalEnv(Env):
         map = [map_number, map_bank, N_map_n, S_map_n, W_map_n, E_map_n]
         return map
 
+    def get_game_coords(self):
+        return (self.read_m(0xDCB8), self.read_m(0xDCB7), self.read_map())
+
     def append_agent_stats(self, action):
-        x_pos = self.read_m(0xDCB8)
-        y_pos = self.read_m(0xDCB7)
-        map = self.read_map()
+        x_pos, y_pos, map = self.get_game_coords()
+
+        self.noop_move = 0
+        if (
+            self.valid_actions[action] in self.move_actions
+            and self.prev_x_pos == x_pos
+            and self.prev_y_pos == y_pos
+        ):
+            self.noop_move = 1
+
+        self.prev_x_pos = x_pos
+        self.prev_y_pos = y_pos
 
         levels = [
             self.read_m(a) for a in [0xDCFE, 0xDD2E, 0xDD5E, 0xDD8E, 0xDDBE, 0xDDEE]
@@ -244,16 +276,17 @@ class CrystalEnv(Env):
                 "map": map,
                 "map_location": self.get_map_location(map),
                 "last_action": action,
-                "pcount": self.read_m(0xDCD7),
+                "pt_count": self.read_m(0xDCD7),
                 "levels": levels,
                 "levels_sum": sum(levels),
-                "ptypes": self.read_party(),
+                "pt_types": self.read_party(),
                 "hp": self.read_hp_fraction(),
                 expl[0]: expl[1],
                 "deaths": self.died_count,
                 "badge": self.get_badges(),
-                # "event": self.progress_reward["event"],
+                "event": self.progress_reward["event"],
                 "healr": self.total_healing_rew,
+                "noop_move": self.noop_move,
             }
         )
 
@@ -263,45 +296,34 @@ class CrystalEnv(Env):
             for addr in [0xDCD8, 0xDCD9, 0xDCDA, 0xDCDB, 0xDCDC, 0xDCDD]
         ]
 
-    def get_map_location(self, map_idx):
+    def get_map_location(self, map_idx: list[int]) -> str:
         map_locations = extra_data.map_locations
-        if str(map_idx) in map_locations.keys():
-            return map_locations[str(map_idx)]
-        else:
-            return "Unknown Location - {}".format(map_idx)
+        for x in map_locations:
+            if map_idx == map_locations[x].get("info"):
+                return map_locations[x].get("location")
+        return "Unknown Location - {}".format(map_idx)
 
     def run_action_on_emulator(self, action):
         # press button then release after some steps
         self.pyboy.send_input(self.valid_actions[action])
-        # disable rendering when we don't need it
         for i in range(self.act_freq):
             # release action, so they are stateless
             if i == 8:
-                if action < 4:
-                    # release arrow
-                    self.pyboy.send_input(self.release_arrow[action])
-                if action > 3 and action < 6:
-                    # release button
-                    self.pyboy.send_input(self.release_button[action - 4])
-                if self.valid_actions[action] == WindowEvent.PRESS_BUTTON_START:
-                    self.pyboy.send_input(WindowEvent.RELEASE_BUTTON_START)
+                self.pyboy.send_input(self.release_actions[action])
             if i == self.act_freq - 1:
                 self.pyboy._rendering(True)
             self.pyboy.tick()
 
     def get_game_state_reward(self, print_stats=False):
-        seen_poke_count = self.read_seen_poke()
         state_scores = {
             "event": self.reward_scale * self.update_max_event_rew(),
-            #'party_xp': self.reward_scale*0.1*sum(poke_xps),
             "level": self.reward_scale * self.get_levels_reward(),
             "heal": self.reward_scale * self.total_healing_rew,
-            # "op_lvl": self.reward_scale * self.update_max_op_level(),
             "dead": self.reward_scale * -0.1 * self.died_count,
             "badge": self.reward_scale * self.get_badges() * 5,
-            #'op_poke': self.reward_scale*self.max_opponent_poke * 800,
-            "seen_poke": self.reward_scale * seen_poke_count * 400,
+            "seen_poke": self.reward_scale * self.read_seen_poke() * 3,
             "explore": self.reward_scale * self.get_knn_reward(),
+            "noop_move": self.reward_scale * self.get_movement_reward(),
         }
 
         return state_scores
@@ -454,6 +476,23 @@ class CrystalEnv(Env):
                     frame_vec, np.array([self.knn_index.get_current_count()])
                 )
 
+    def is_in_battle(self):
+        """Return boolean: true if player is in any type of battle, else false."""
+        return self.read_m(0xD230) == 12
+
+    def get_movement_reward(self):
+        """
+        Yield a reward if the player is walking in the world and makes an up/down/left/right move
+        that results in the player moving coordinates. The aim is to penalize running into walls
+        or people, wasting time.
+        """
+        if self.noop_move and not self.is_in_battle():
+            if np.random.rand() < 0.1:
+                return 1
+            else:
+                return -1
+        return 1
+
     def get_all_events_reward(self):
         event_flags_start = 0xDA72
         event_flags_end = 0xDB71
@@ -465,7 +504,6 @@ class CrystalEnv(Env):
                 ]
             )
             - 125,
-            0,
         )
 
     def bit_count(self, bits):
@@ -499,16 +537,4 @@ class CrystalEnv(Env):
                 fs_path
                 / Path(f"frame_r{self.total_reward:.4f}_{self.reset_count}_full.jpeg"),
                 self.render(reduce_res=False),
-            )
-
-        if done:
-            self.all_runs.append(self.progress_reward)
-            with open(
-                self.s_path / Path(f"all_runs_{self.instance_id}.json"), "w"
-            ) as f:
-                json.dump(self.all_runs, f)
-            pd.DataFrame(self.agent_stats).to_csv(
-                self.s_path / Path(f"agent_stats_{self.instance_id}.csv.gz"),
-                compression="gzip",
-                mode="a",
             )
