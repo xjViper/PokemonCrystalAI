@@ -6,5 +6,5 @@ mediapy==1.0.3
 numpy==1.25.0
 pandas==2.0.2
 pyboy==1.6.9
-skimage==0.0
+scikit-image==0.22.0
 stable_baselines3==2.0.0

@@ -164,3 +164,4 @@ cython_debug/
 
 /src/session_*/
 /src/test.py
+/src/tensorboard/
