@@ -131,7 +131,8 @@ class CrystalEnv(Env):
         self.party_size = 0
         self.step_count = 0
         self.progress_reward = self.get_game_state_reward()
-        self.total_reward = sum([val for _, val in self.progress_reward.items()])
+        self.total_reward = sum(
+            [val for _, val in self.progress_reward.items()])
         self.reset_count += 1
         return self.render(), {}
 
@@ -167,7 +168,8 @@ class CrystalEnv(Env):
         # trim off memory from frame for knn index
         frame_start = 2 * (8 + 2)
         obs_flat = (
-            obs_memory[frame_start : frame_start + 36, ...].flatten().astype(np.float32)
+            obs_memory[frame_start: frame_start +
+                       36, ...].flatten().astype(np.float32)
         )
 
         self.update_frame_knn_index(obs_flat)
@@ -234,7 +236,8 @@ class CrystalEnv(Env):
             space="l2", dim=4320
         )  # possible options are l2, cosine or ip
         # Initing index - the maximum number of elements should be known beforehand
-        self.knn_index.init_index(max_elements=20000, ef_construction=100, M=16)
+        self.knn_index.init_index(
+            max_elements=20000, ef_construction=100, M=16)
 
     def read_map(self):
         map_number = self.read_m(0xDCB6)
@@ -330,7 +333,8 @@ class CrystalEnv(Env):
 
     def get_badges(self):
         return sum(
-            [self.bit_count(self.read_m(0xD857)), self.bit_count(self.read_m(0xD858))],
+            [self.bit_count(self.read_m(0xD857)),
+             self.bit_count(self.read_m(0xD858))],
             0,
         )
 
@@ -405,7 +409,8 @@ class CrystalEnv(Env):
         if level_sum < explore_thresh:
             scaled = level_sum
         else:
-            scaled = (level_sum - explore_thresh) / scale_factor + explore_thresh
+            scaled = (level_sum - explore_thresh) / \
+                scale_factor + explore_thresh
         self.max_level_rew = max(self.max_level_rew, scaled)
         return self.max_level_rew
 
@@ -478,7 +483,7 @@ class CrystalEnv(Env):
 
     def is_in_battle(self):
         """Return boolean: true if player is in any type of battle, else false."""
-        return self.read_m(0xD230) == 12
+        return self.read_m(0xd22d) != 0
 
     def get_movement_reward(self):
         """
@@ -487,10 +492,7 @@ class CrystalEnv(Env):
         or people, wasting time.
         """
         if self.noop_move and not self.is_in_battle():
-            if np.random.rand() < 0.1:
-                return 1
-            else:
-                return -1
+            return -1
         return 1
 
     def get_all_events_reward(self):
@@ -503,7 +505,7 @@ class CrystalEnv(Env):
                     for i in range(event_flags_start, event_flags_end)
                 ]
             )
-            - 125,
+            - 125, 0
         )
 
     def bit_count(self, bits):

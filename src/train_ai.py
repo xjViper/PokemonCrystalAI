@@ -65,7 +65,7 @@ if __name__ == "__main__":
     }
 
     learn_steps = 6
-    num_cpu = 1
+    num_cpu = 2
 
     # session_folder, latest_poke_file = find_latest_session_and_poke()
     # print("\n" + latest_poke_file)

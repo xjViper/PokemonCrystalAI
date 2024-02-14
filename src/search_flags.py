@@ -17,10 +17,12 @@ def read_hp(start):
 
 def read_hp_fraction():
     hp_sum = sum(
-        [read_hp(add) for add in [0xDD01, 0xDD31, 0xDD61, 0xDD91, 0xDDC1, 0xDDF1]]
+        [read_hp(add)
+         for add in [0xDD01, 0xDD31, 0xDD61, 0xDD91, 0xDDC1, 0xDDF1]]
     )
     max_hp_sum = sum(
-        [read_hp(add) for add in [0xDD03, 0xDD33, 0xDD63, 0xDD93, 0xDDC3, 0xDDF3]]
+        [read_hp(add)
+         for add in [0xDD03, 0xDD33, 0xDD63, 0xDD93, 0xDDC3, 0xDDF3]]
     )
     max_hp_sum = max(max_hp_sum, 1)
     return hp_sum / max_hp_sum
@@ -28,14 +30,16 @@ def read_hp_fraction():
 
 def hp_sum():
     hp_sum = sum(
-        [read_hp(add) for add in [0xDD01, 0xDD31, 0xDD61, 0xDD91, 0xDDC1, 0xDDF1]]
+        [read_hp(add)
+         for add in [0xDD01, 0xDD31, 0xDD61, 0xDD91, 0xDDC1, 0xDDF1]]
     )
     return hp_sum
 
 
 def max_hp_sum():
     max_hp_sum = sum(
-        [read_hp(add) for add in [0xDD03, 0xDD33, 0xDD63, 0xDD93, 0xDDC3, 0xDDF3]]
+        [read_hp(add)
+         for add in [0xDD03, 0xDD33, 0xDD63, 0xDD93, 0xDDC3, 0xDDF3]]
     )
     return max_hp_sum
 
@@ -44,22 +48,22 @@ def get_all_events_reward():
     event_flags_start = 0xDA72
     event_flags_end = 0xDB71
 
-    return [
-        int(bit)
-        for i in range(event_flags_start, event_flags_end)
-        for bit in f"{pyboy.get_memory_value(i):08b}"
-    ]
+    # return [
+    #     int(bit)
+    #     for i in range(event_flags_start, event_flags_end)
+    #     for bit in f"{pyboy.get_memory_value(i):08b}"
+    # ]
 
-    # return max(
-    #     sum(
-    #         [
-    #             bit_count(pyboy.get_memory_value(i))
-    #             for i in range(event_flags_start, event_flags_end)
-    #         ]
-    #     )
-    #     - 125,
-    #     0,
-    # )
+    return max(
+        sum(
+            [
+                bit_count(pyboy.get_memory_value(i))
+                for i in range(event_flags_start, event_flags_end)
+            ]
+        )
+        - 125,
+        0,
+    )
 
 
 def get_badges():
@@ -165,6 +169,9 @@ while not pyboy.tick():
     W_map_n = pyboy.get_memory_value(0xD1C2)
     E_map_n = pyboy.get_memory_value(0xD1CE)
 
+    battleType = pyboy.get_memory_value(0xD230)
+    battleMode = pyboy.get_memory_value(0xd22d)
+
     # j_badges = pyboy.get_memory_value(0xD857)
 
     # k_badges = pyboy.get_memory_value(0xD858)
@@ -255,6 +262,8 @@ while not pyboy.tick():
         print(f"HP Fraction: {hp_fraction}")
         print(f"HP Sum: {pt_hp}")
         print(f"Max HP Sum: {pt_max_hp}")
+        print(f"Battle Mode: {battleMode}")
+        print(f"Battle Type: {battleType}")
 
         print(
             f"""Nível dos Pokes por Slot: 
