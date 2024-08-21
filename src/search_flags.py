@@ -10,6 +10,10 @@ pyboy.load_state(save)
 pyboy.set_emulation_speed(6)
 pyboy.set_memory_value(0xD4B7, 6)
 
+# ? Usar a função abaixo para pesquisar na memória
+# ? pyboy.memory_scanner.scan_memory(current_score, start_addr=0xC000, end_addr=0xDFFF)
+# ? https://docs.pyboy.dk/api/memory_scanner.html
+
 
 def read_hp(start):
     return 256 * pyboy.memory[start] + pyboy.memory[start + 1]
@@ -43,23 +47,29 @@ def max_hp_sum():
 def get_all_events_reward():
     event_flags_start = 0xDA72
     event_flags_end = 0xDB71
-
+    scan = pyboy.memory_scanner.scan_memory(
+        start_addr=event_flags_start, end_addr=event_flags_end
+    )
+    print("**** Events Scanner Start ****")
+    print(scan)
+    print("**** Events Scanner End ****")
+    return 0
     # return [
     #     int(bit)
     #     for i in range(event_flags_start, event_flags_end)
     #     for bit in f"{pyboy.memory[i):08b}"
     # ]
 
-    return max(
-        sum(
-            [
-                bit_count(pyboy.memory[i])
-                for i in range(event_flags_start, event_flags_end)
-            ]
-        )
-        - 125,
-        0,
-    )
+    # return max(
+    #     sum(
+    #         [
+    #             bit_count(pyboy.memory[i])
+    #             for i in range(event_flags_start, event_flags_end)
+    #         ]
+    #     )
+    #     - 125,
+    #     0,
+    # )
 
 
 def get_badges():
@@ -77,11 +87,16 @@ def read_bcd(num):
 
 
 def read_money():
-    return (
-        100 * 100 * read_bcd(pyboy.memory[0xD84E])
-        + 100 * read_bcd(pyboy.memory[0xD84F])
-        + read_bcd(pyboy.memory[0xD850])
-    )
+    scan = pyboy.memory_scanner.scan_memory(start_addr=0xD84E, end_addr=0xD850)
+    print("**** Money Scanner Start ****")
+    print(scan)
+    print("**** Money Scanner End ****")
+    return 0
+    # return (
+    #     100 * 100 * read_bcd(pyboy.memory[0xD84E])
+    #     + 100 * read_bcd(pyboy.memory[0xD84F])
+    #     + read_bcd(pyboy.memory[0xD850])
+    # )
 
 
 def bit_count(bits):
@@ -152,7 +167,7 @@ prev_values = {
 
 
 # Loop principal para emular o jogo
-while not pyboy.tick():
+while pyboy.tick():
     # Obtendo os valores das flags
     # x_pos = pyboy.memory[0xDCB8]
     # y_pos = pyboy.memory[0xDCB7]
@@ -242,8 +257,8 @@ while not pyboy.tick():
         print(f"Número do Mapa Conectado ao Oeste 0xD1C1: {W_map_n}")
         print(f"Número do Mapa Conectado ao Leste 0xD1CD: {E_map_n}")
 
-        # print(f"Johto Badges 0xD857: {j_badges}")
-        # print(f"Kanto Badges 0xD858: {k_badges}")
+        print(f"Johto Badges 0xD857: {j_badges}")
+        print(f"Kanto Badges 0xD858: {k_badges}")
         print(f"Badges Def Get Badges: {badges}")
 
         print(f"Event Flags Def Event Flags: {event_flags}")
