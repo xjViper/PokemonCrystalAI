@@ -1,8 +1,6 @@
 import sys
 import uuid
-import os
-from math import floor, sqrt
-import json
+from math import floor
 from pathlib import Path
 
 import extra_data
@@ -11,10 +9,7 @@ from einops import rearrange
 import matplotlib.pyplot as plt
 from skimage.transform import resize
 from pyboy import PyBoy
-from pyboy.logger import log_level
 import hnswlib
-import mediapy as media
-import pandas as pd
 
 from gymnasium import Env, spaces
 from pyboy.utils import WindowEvent
@@ -84,17 +79,14 @@ class CrystalEnv(Env):
 
         self.pyboy = PyBoy(
             "../PokemonCrystal.gbc",
-            debugging=False,
-            disable_input=False,
-            window_type="SDL2",
-            hide_window="--quiet" in sys.argv,
+            window="SDL2",
         )
 
         self.act_freq = 24
         self.reset_count = 0
         self.all_runs = []
 
-        self.screen = self.pyboy.botsupport_manager().screen()
+        self.screen = self.pyboy.screen
         self.pyboy.set_emulation_speed(6)
         self.reset()
 
@@ -119,6 +111,7 @@ class CrystalEnv(Env):
         )
 
         self.agent_stats = []
+        self.noop_move = 0
         self.levels_satisfied = False
         self.base_explore = 0
         self.max_opponent_level = 0
@@ -131,13 +124,12 @@ class CrystalEnv(Env):
         self.party_size = 0
         self.step_count = 0
         self.progress_reward = self.get_game_state_reward()
-        self.total_reward = sum(
-            [val for _, val in self.progress_reward.items()])
+        self.total_reward = sum([val for _, val in self.progress_reward.items()])
         self.reset_count += 1
         return self.render(), {}
 
     def render(self, reduce_res=True, add_memory=True, update_mem=True):
-        game_pixels_render = self.screen.screen_ndarray()  # (144, 160, 3)
+        game_pixels_render = self.screen.ndarray  # (144, 160, 3)
         if reduce_res:
             game_pixels_render = (255 * resize(game_pixels_render, (36, 40, 3))).astype(
                 np.uint8
@@ -168,8 +160,7 @@ class CrystalEnv(Env):
         # trim off memory from frame for knn index
         frame_start = 2 * (8 + 2)
         obs_flat = (
-            obs_memory[frame_start: frame_start +
-                       36, ...].flatten().astype(np.float32)
+            obs_memory[frame_start : frame_start + 36, ...].flatten().astype(np.float32)
         )
 
         self.update_frame_knn_index(obs_flat)
@@ -236,8 +227,7 @@ class CrystalEnv(Env):
             space="l2", dim=4320
         )  # possible options are l2, cosine or ip
         # Initing index - the maximum number of elements should be known beforehand
-        self.knn_index.init_index(
-            max_elements=20000, ef_construction=100, M=16)
+        self.knn_index.init_index(max_elements=20000, ef_construction=100, M=16)
 
     def read_map(self):
         map_number = self.read_m(0xDCB6)
@@ -255,13 +245,15 @@ class CrystalEnv(Env):
     def append_agent_stats(self, action):
         x_pos, y_pos, map = self.get_game_coords()
 
-        self.noop_move = 0
         if (
             self.valid_actions[action] in self.move_actions
             and self.prev_x_pos == x_pos
             and self.prev_y_pos == y_pos
+            and not self.is_in_battle()
         ):
-            self.noop_move = 1
+            self.noop_move -= 0.1
+        else:
+            self.noop_move += 0.7
 
         self.prev_x_pos = x_pos
         self.prev_y_pos = y_pos
@@ -313,8 +305,8 @@ class CrystalEnv(Env):
             # release action, so they are stateless
             if i == 8:
                 self.pyboy.send_input(self.release_actions[action])
-            if i == self.act_freq - 1:
-                self.pyboy._rendering(True)
+            # if i == self.act_freq - 1:
+            #     self.pyboy._rendering(True)
             self.pyboy.tick()
 
     def get_game_state_reward(self, print_stats=False):
@@ -322,7 +314,8 @@ class CrystalEnv(Env):
             "event": self.reward_scale * self.update_max_event_rew(),
             "level": self.reward_scale * self.get_levels_reward(),
             "heal": self.reward_scale * self.total_healing_rew,
-            "dead": self.reward_scale * -0.1 * self.died_count,
+            "dead": self.reward_scale
+            * (-0.1 * self.died_count if self.died_count > 0 else 0),
             "badge": self.reward_scale * self.get_badges() * 5,
             "seen_poke": self.reward_scale * self.read_seen_poke() * 3,
             "explore": self.reward_scale * self.get_knn_reward(),
@@ -333,8 +326,7 @@ class CrystalEnv(Env):
 
     def get_badges(self):
         return sum(
-            [self.bit_count(self.read_m(0xD857)),
-             self.bit_count(self.read_m(0xD858))],
+            [self.bit_count(self.read_m(0xD857)), self.bit_count(self.read_m(0xD858))],
             0,
         )
 
@@ -363,7 +355,7 @@ class CrystalEnv(Env):
                 self.died_count += 1
 
     def read_m(self, addr):
-        return self.pyboy.get_memory_value(addr)
+        return self.pyboy.memory[addr]
 
     def read_bcd(self, num):
         return 10 * ((num >> 4) & 0x0F) + (num & 0x0F)
@@ -409,8 +401,7 @@ class CrystalEnv(Env):
         if level_sum < explore_thresh:
             scaled = level_sum
         else:
-            scaled = (level_sum - explore_thresh) / \
-                scale_factor + explore_thresh
+            scaled = (level_sum - explore_thresh) / scale_factor + explore_thresh
         self.max_level_rew = max(self.max_level_rew, scaled)
         return self.max_level_rew
 
@@ -483,7 +474,7 @@ class CrystalEnv(Env):
 
     def is_in_battle(self):
         """Return boolean: true if player is in any type of battle, else false."""
-        return self.read_m(0xd22d) != 0
+        return self.read_m(0xD22D) != 0
 
     def get_movement_reward(self):
         """
@@ -491,9 +482,7 @@ class CrystalEnv(Env):
         that results in the player moving coordinates. The aim is to penalize running into walls
         or people, wasting time.
         """
-        if self.noop_move and not self.is_in_battle():
-            return -1
-        return 1
+        return self.noop_move
 
     def get_all_events_reward(self):
         event_flags_start = 0xDA72
@@ -505,7 +494,8 @@ class CrystalEnv(Env):
                     for i in range(event_flags_start, event_flags_end)
                 ]
             )
-            - 125, 0
+            - 125,
+            0,
         )
 
     def bit_count(self, bits):

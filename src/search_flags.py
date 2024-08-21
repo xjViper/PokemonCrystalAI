@@ -12,17 +12,15 @@ pyboy.set_memory_value(0xD4B7, 6)
 
 
 def read_hp(start):
-    return 256 * pyboy.get_memory_value(start) + pyboy.get_memory_value(start + 1)
+    return 256 * pyboy.memory[start] + pyboy.memory[start + 1]
 
 
 def read_hp_fraction():
     hp_sum = sum(
-        [read_hp(add)
-         for add in [0xDD01, 0xDD31, 0xDD61, 0xDD91, 0xDDC1, 0xDDF1]]
+        [read_hp(add) for add in [0xDD01, 0xDD31, 0xDD61, 0xDD91, 0xDDC1, 0xDDF1]]
     )
     max_hp_sum = sum(
-        [read_hp(add)
-         for add in [0xDD03, 0xDD33, 0xDD63, 0xDD93, 0xDDC3, 0xDDF3]]
+        [read_hp(add) for add in [0xDD03, 0xDD33, 0xDD63, 0xDD93, 0xDDC3, 0xDDF3]]
     )
     max_hp_sum = max(max_hp_sum, 1)
     return hp_sum / max_hp_sum
@@ -30,16 +28,14 @@ def read_hp_fraction():
 
 def hp_sum():
     hp_sum = sum(
-        [read_hp(add)
-         for add in [0xDD01, 0xDD31, 0xDD61, 0xDD91, 0xDDC1, 0xDDF1]]
+        [read_hp(add) for add in [0xDD01, 0xDD31, 0xDD61, 0xDD91, 0xDDC1, 0xDDF1]]
     )
     return hp_sum
 
 
 def max_hp_sum():
     max_hp_sum = sum(
-        [read_hp(add)
-         for add in [0xDD03, 0xDD33, 0xDD63, 0xDD93, 0xDDC3, 0xDDF3]]
+        [read_hp(add) for add in [0xDD03, 0xDD33, 0xDD63, 0xDD93, 0xDDC3, 0xDDF3]]
     )
     return max_hp_sum
 
@@ -51,13 +47,13 @@ def get_all_events_reward():
     # return [
     #     int(bit)
     #     for i in range(event_flags_start, event_flags_end)
-    #     for bit in f"{pyboy.get_memory_value(i):08b}"
+    #     for bit in f"{pyboy.memory[i):08b}"
     # ]
 
     return max(
         sum(
             [
-                bit_count(pyboy.get_memory_value(i))
+                bit_count(pyboy.memory[i])
                 for i in range(event_flags_start, event_flags_end)
             ]
         )
@@ -69,8 +65,8 @@ def get_all_events_reward():
 def get_badges():
     return sum(
         [
-            bit_count(pyboy.get_memory_value(0xD857)),
-            bit_count(pyboy.get_memory_value(0xD858)),
+            bit_count(pyboy.memory[0xD857]),
+            bit_count(pyboy.memory[0xD858]),
         ],
         0,
     )
@@ -82,9 +78,9 @@ def read_bcd(num):
 
 def read_money():
     return (
-        100 * 100 * read_bcd(pyboy.get_memory_value(0xD84E))
-        + 100 * read_bcd(pyboy.get_memory_value(0xD84F))
-        + read_bcd(pyboy.get_memory_value(0xD850))
+        100 * 100 * read_bcd(pyboy.memory[0xD84E])
+        + 100 * read_bcd(pyboy.memory[0xD84F])
+        + read_bcd(pyboy.memory[0xD850])
     )
 
 
@@ -134,7 +130,7 @@ def read_seen_poke():
         0xDED7,
         0xDED8,
     ]
-    return sum([bit_count(pyboy.get_memory_value(i)) for i in addr])
+    return sum([bit_count(pyboy.memory[i]) for i in addr])
 
 
 prev_values = {
@@ -158,41 +154,38 @@ prev_values = {
 # Loop principal para emular o jogo
 while not pyboy.tick():
     # Obtendo os valores das flags
-    # x_pos = pyboy.get_memory_value(0xDCB8)
-    # y_pos = pyboy.get_memory_value(0xDCB7)
-    map_n = pyboy.get_memory_value(0xDCB6)
-    map_bank = pyboy.get_memory_value(0xDCB5)
-    warp_n = pyboy.get_memory_value(0xDCB4)
+    # x_pos = pyboy.memory[0xDCB8]
+    # y_pos = pyboy.memory[0xDCB7]
+    map_n = pyboy.memory[0xDCB6]
+    map_bank = pyboy.memory[0xDCB5]
+    warp_n = pyboy.memory[0xDCB4]
 
-    N_map_n = pyboy.get_memory_value(0xD1AA)
-    S_map_n = pyboy.get_memory_value(0xD1B6)
-    W_map_n = pyboy.get_memory_value(0xD1C2)
-    E_map_n = pyboy.get_memory_value(0xD1CE)
+    N_map_n = pyboy.memory[0xD1AA]
+    S_map_n = pyboy.memory[0xD1B6]
+    W_map_n = pyboy.memory[0xD1C2]
+    E_map_n = pyboy.memory[0xD1CE]
 
-    battleType = pyboy.get_memory_value(0xD230)
-    battleMode = pyboy.get_memory_value(0xd22d)
+    battleType = pyboy.memory[0xD230]
+    battleMode = pyboy.memory[0xD22D]
 
-    # j_badges = pyboy.get_memory_value(0xD857)
+    # j_badges = pyboy.memory[0xD857]
 
-    # k_badges = pyboy.get_memory_value(0xD858)
+    # k_badges = pyboy.memory[0xD858]
     badges = get_badges()
 
-    pt_num = pyboy.get_memory_value(0xDCD7)
+    pt_num = pyboy.memory[0xDCD7]
 
-    # room = pyboy.get_memory_value(0xD148)
+    # room = pyboy.memory[0xD148]
 
     event_flags = get_all_events_reward()
     hp_fraction = read_hp_fraction()
     pt_hp = hp_sum()
     pt_max_hp = max_hp_sum()
 
-    levels = [
-        pyboy.get_memory_value(a)
-        for a in [0xDCFE, 0xDD2E, 0xDD5E, 0xDD8E, 0xDDBE, 0xDDEE]
-    ]
+    levels = [pyboy.memory[a] for a in [0xDCFE, 0xDD2E, 0xDD5E, 0xDD8E, 0xDDBE, 0xDDEE]]
 
-    # hour = pyboy.get_memory_value(0xD4B7)
-    # min = pyboy.get_memory_value(0xD4B8)
+    # hour = pyboy.memory[0xD4B7)
+    # min = pyboy.memory[0xD4B8)
 
     money = read_money()
 

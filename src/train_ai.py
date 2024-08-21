@@ -28,7 +28,7 @@ def make_env(rank, env_conf, seed=0):
 
 
 def find_latest_session_and_poke():
-    all_folders = os.listdir()
+    all_folders = os.listdir("src/sessions")
     session_folders = [
         folder for folder in all_folders if re.match(r"session_[0-9a-fA-F]{8}", folder)
     ]
@@ -52,9 +52,9 @@ def find_latest_session_and_poke():
 
 
 if __name__ == "__main__":
-    ep_length = 2048 * 10
+    ep_length = 2048 * 8
     sess_id = str(uuid.uuid4())[:8]
-    sess_path = Path(f"session_{sess_id}")
+    sess_path = Path(f"sessions/session_{sess_id}")
 
     env_config = {
         "n_steps": ep_length,
@@ -64,7 +64,7 @@ if __name__ == "__main__":
         "reward_scale": 3,
     }
 
-    learn_steps = 6
+    learn_steps = 1
     num_cpu = 2
 
     # session_folder, latest_poke_file = find_latest_session_and_poke()
